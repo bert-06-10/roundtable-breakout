@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roundtable</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Serif:opsz,wght@8..144,500;8..144,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary-blue: #236DAF;
+    --forest-green: #739339;
+    --leaf-green:   #779938;
+    --charcoal:     #595959;
+    --deep-navy:    #051A2E;
+    --off-white:    #F7F7F7;
+    --sky-blue:     #B5D6F7;
+    --sage-mist:    #D4ECA8;
+
+    --sans:  'Roboto', -apple-system, sans-serif;
+    --serif: 'Roboto Serif', Georgia, serif;
+  }
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: var(--off-white);
+    color: var(--deep-navy);
+    font-family: var(--sans);
+  }
+  #app{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: 32px 20px;
+  }
+  .card{
+    width:100%;
+    max-width: 560px;
+    position:relative;
+  }
+  .eyebrow{
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--primary-blue);
+    margin-bottom: 18px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .eyebrow .rule{
+    height:1px; width:28px; background: var(--sky-blue);
+  }
+  h1.hero{
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 34px;
+    line-height:1.25;
+    margin: 0 0 14px 0;
+    color: var(--deep-navy);
+  }
+  .lede{
+    font-size: 16px;
+    line-height:1.6;
+    color: var(--charcoal);
+    max-width: 46ch;
+    margin: 0 0 32px 0;
+  }
+  .question-label{
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--primary-blue);
+    margin-bottom: 12px;
+  }
+  h2.question{
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 30px;
+    line-height:1.35;
+    margin: 0 0 36px 0;
+    color: var(--deep-navy);
+    max-width: 22ch;
+  }
+  .btn{
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--off-white);
+    background: var(--primary-blue);
+    border: none;
+    border-radius: 3px;
+    padding: 13px 22px;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+  .btn:hover{ background: #1c5c93; }
+  .btn:active{ transform: scale(0.98); }
+  .btn.ghost{
+    background: transparent;
+    color: var(--charcoal);
+    border: 1px solid var(--sky-blue);
+  }
+  .btn.ghost:hover{ color: var(--deep-navy); border-color: var(--primary-blue); background:transparent; }
+  .row{ display:flex; align-items:center; gap:14px; flex-wrap: wrap; }
+
+  .timer-block{ margin: 4px 0 32px 0; }
+  .timer-display{
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--forest-green);
+    margin-left: 14px;
+    min-width: 60px;
+    display:inline-block;
+  }
+
+  .screen{ display:none; animation: fadein 0.4s ease; }
+  .screen.active{ display:block; }
+  @keyframes fadein{
+    from{ opacity:0; transform: translateY(6px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+
+  .quiet-wrap{ text-align:center; padding-top: 20px; }
+  .quiet-wrap h1.hero{ font-size:26px; }
+  .quiet-wrap .lede{ margin-left:auto; margin-right:auto; }
+
+  .helper-dock{
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    max-width: 560px;
+  }
+  .helper-pill{
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--deep-navy);
+    background: var(--sky-blue);
+    border: 1px solid var(--sky-blue);
+    border-radius: 999px;
+    padding: 12px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    cursor:pointer;
+    width: 100%;
+  }
+  .helper-pill:hover{ background: #a5cdf5; }
+  .helper-pill .plus{ color: var(--primary-blue); font-size:18px; line-height:1; font-weight:700; }
+
+  .panel{
+    background: var(--sage-mist);
+    border: 1px solid #c3e393;
+    border-radius: 6px;
+    margin-top: 12px;
+    padding: 6px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  .panel.open{ max-height: 420px; overflow-y:auto; }
+  .qitem{
+    font-family: var(--serif);
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--deep-navy);
+    padding: 14px 16px;
+    border-bottom: 1px solid #c3e393;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .qitem:hover{ background: rgba(255,255,255,0.35); }
+  .qitem:last-child{ border-bottom:none; }
+  .qitem .tapped-note{
+    display:block;
+    font-family: var(--sans);
+    font-weight: 400;
+    font-size: 12px;
+    color: var(--forest-green);
+    margin-top: 6px;
+  }
+
+  .progress{
+    position:absolute;
+    top: -18px;
+    right: 0;
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--charcoal);
+  }
+
+  .admin-panel{
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    background: var(--deep-navy);
+    color: var(--off-white);
+    font-family: var(--sans);
+    font-size: 12px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    max-width: 260px;
+    line-height:1.6;
+  }
+  .admin-panel b{ color: var(--sage-mist); }
+
+  @media (max-width: 480px){
+    h1.hero{ font-size:26px; }
+    h2.question{ font-size:24px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="card">
+
+    <!-- SCREEN 0: Welcome -->
+    <div class="screen active" id="screen-0">
+      <div class="eyebrow"><span class="rule"></span>Roundtable</div>
+      <h1 class="hero">A short guide to open your discussion.</h1>
+      <p class="lede">Two quick steps to get everyone talking — then it's yours. If things ever stall, there's a list of questions to pull from.</p>
+      <button class="btn" onclick="goTo(1)">Begin</button>
+    </div>
+
+    <!-- SCREEN 1: Intros -->
+    <div class="screen" id="screen-1">
+      <div class="progress">Step 1 of 2</div>
+      <div class="eyebrow"><span class="rule"></span>Introductions</div>
+      <h1 class="hero">Go around the group.</h1>
+      <p class="lede">Share your name, your role, and one thing you're hoping to get out of today's session. About a minute each is plenty.</p>
+
+      <div class="timer-block" id="timer-block">
+        <div class="row" id="timer-start-row">
+          <button class="btn ghost" onclick="startTimer()">Start a quiet timer</button>
+        </div>
+        <div class="row" id="timer-running-row" style="display:none;">
+          <button class="btn ghost" onclick="stopTimer()">Stop</button>
+          <span class="timer-display" id="timer-display">0:00</span>
+        </div>
+      </div>
+
+      <button class="btn" onclick="goTo(2)">Next: opening question</button>
+    </div>
+
+    <!-- SCREEN 2: Opening question -->
+    <div class="screen" id="screen-2">
+      <div class="progress">Step 2 of 2</div>
+      <div class="question-label">Opening question — everyone reflects on this one</div>
+      <h2 class="question" id="opening-question-text">What's a decision you're wrestling with right now — and what's making it hard?</h2>
+      <button class="btn" onclick="goTo(3)">Begin discussion</button>
+    </div>
+
+    <!-- SCREEN 3: Discussion (quiet) -->
+    <div class="screen" id="screen-3">
+      <div class="quiet-wrap">
+        <div class="eyebrow" style="justify-content:center;"><span class="rule"></span>Discussion<span class="rule"></span></div>
+        <h1 class="hero">Take it from here.</h1>
+        <p class="lede">No more steps — talk about whatever the opening question brought up. If it ever stalls, there's a list below.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="helper-dock" id="helper-dock" style="display:none;">
+  <div class="helper-pill" onclick="togglePanel()">
+    <span>Stuck? Pull a question</span>
+    <span class="plus" id="dock-icon">+</span>
+  </div>
+  <div class="panel" id="question-panel"></div>
+</div>
+
+<div class="admin-panel" id="admin-panel" style="display:none;"></div>
+
+<script>
+  // ---- Facilitator-editable content ----
+  const OPENING_QUESTION = "What's a decision you're wrestling with right now — and what's making it hard?";
+  const BACKUP_QUESTIONS = [
+    "What would you do differently here if you weren't afraid of how it looks?",
+    "Who in your organization has influence without formal authority — and how did they get it?",
+    "What's a piece of feedback you've been given but haven't really acted on?",
+    "Where might you be overestimating how much control you actually have over this?",
+    "What's an assumption in your plan that you haven't actually tested?",
+    "If someone on your team described this the way you just did, what would you tell them?"
+  ];
+
+  document.getElementById('opening-question-text').textContent = OPENING_QUESTION;
+
+  // ---- Tap logging ----
+  // Persists tap counts in this browser's localStorage. Counts are per-device/
+  // per-browser, not shared across participants — swap logTap()/getTapCounts()
+  // for a backend call (e.g. Supabase) if you need counts aggregated across everyone.
+  const TAP_KEY = 'roundtable_question_taps';
+
+  async function getTapCounts(){
+    try{
+      const raw = localStorage.getItem(TAP_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }catch(e){
+      return {};
+    }
+  }
+
+  async function logTap(questionText){
+    try{
+      const counts = await getTapCounts();
+      counts[questionText] = (counts[questionText] || 0) + 1;
+      localStorage.setItem(TAP_KEY, JSON.stringify(counts));
+      return counts;
+    }catch(e){
+      console.error('Tap logging failed', e);
+      return null;
+    }
+  }
+
+  const panel = document.getElementById('question-panel');
+  BACKUP_QUESTIONS.forEach(q => {
+    const div = document.createElement('div');
+    div.className = 'qitem';
+    div.textContent = q;
+    div.onclick = async () => {
+      const note = document.createElement('span');
+      note.className = 'tapped-note';
+      note.textContent = 'Logged ✓';
+      if(!div.querySelector('.tapped-note')) div.appendChild(note);
+      const counts = await logTap(q);
+      if(counts) renderAdminPanel(counts);
+    };
+    panel.appendChild(div);
+  });
+
+  function goTo(n){
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + n).classList.add('active');
+    document.getElementById('helper-dock').style.display = (n === 3) ? 'block' : 'none';
+  }
+
+  function togglePanel(){
+    panel.classList.toggle('open');
+    document.getElementById('dock-icon').textContent = panel.classList.contains('open') ? '–' : '+';
+  }
+
+  // ---- Optional quiet timer for intros ----
+  let timerInterval = null;
+  let seconds = 0;
+  function startTimer(){
+    document.getElementById('timer-start-row').style.display = 'none';
+    document.getElementById('timer-running-row').style.display = 'flex';
+    timerInterval = setInterval(() => {
+      seconds++;
+      const m = Math.floor(seconds/60);
+      const s = String(seconds%60).padStart(2,'0');
+      document.getElementById('timer-display').textContent = m + ':' + s;
+    }, 1000);
+  }
+  function stopTimer(){
+    clearInterval(timerInterval);
+    seconds = 0;
+    document.getElementById('timer-display').textContent = '0:00';
+    document.getElementById('timer-start-row').style.display = 'flex';
+    document.getElementById('timer-running-row').style.display = 'none';
+  }
+
+  // ---- Optional admin view: add ?taps=1 to the URL to see logged counts ----
+  const params = new URLSearchParams(window.location.search);
+  if(params.get('taps') === '1'){
+    document.getElementById('admin-panel').style.display = 'block';
+    getTapCounts().then(renderAdminPanel);
+  }
+  function renderAdminPanel(counts){
+    const el = document.getElementById('admin-panel');
+    if(el.style.display === 'none') return;
+    const rows = Object.entries(counts)
+      .sort((a,b) => b[1]-a[1])
+      .map(([q,c]) => '<b>' + c + '×</b> ' + q.slice(0,40) + (q.length>40?'…':''))
+      .join('<br>');
+    el.innerHTML = '<b>Tap counts (demo)</b><br>' + (rows || 'No taps yet');
+  }
+</script>
+
+</body>
+</html>
