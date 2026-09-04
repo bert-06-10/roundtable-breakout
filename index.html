@@ -238,11 +238,11 @@
 
       <div class="timer-block" id="timer-block">
         <div class="row" id="timer-start-row">
-          <button class="btn ghost" onclick="startTimer()">Start a quiet timer</button>
+          <button class="btn ghost" onclick="startTimer()">Start 1-minute timer</button>
         </div>
         <div class="row" id="timer-running-row" style="display:none;">
           <button class="btn ghost" onclick="stopTimer()">Stop</button>
-          <span class="timer-display" id="timer-display">0:00</span>
+          <span class="timer-display" id="timer-display">1:00</span>
         </div>
       </div>
 
@@ -348,22 +348,31 @@
   }
 
   // ---- Optional quiet timer for intros ----
+  const TIMER_START_SECONDS = 60;
   let timerInterval = null;
-  let seconds = 0;
+  let seconds = TIMER_START_SECONDS;
+  function renderTimer(){
+    const m = Math.floor(seconds/60);
+    const s = String(seconds%60).padStart(2,'0');
+    document.getElementById('timer-display').textContent = m + ':' + s;
+  }
   function startTimer(){
+    seconds = TIMER_START_SECONDS;
+    renderTimer();
     document.getElementById('timer-start-row').style.display = 'none';
     document.getElementById('timer-running-row').style.display = 'flex';
     timerInterval = setInterval(() => {
-      seconds++;
-      const m = Math.floor(seconds/60);
-      const s = String(seconds%60).padStart(2,'0');
-      document.getElementById('timer-display').textContent = m + ':' + s;
+      seconds--;
+      renderTimer();
+      if(seconds <= 0){
+        clearInterval(timerInterval);
+      }
     }, 1000);
   }
   function stopTimer(){
     clearInterval(timerInterval);
-    seconds = 0;
-    document.getElementById('timer-display').textContent = '0:00';
+    seconds = TIMER_START_SECONDS;
+    renderTimer();
     document.getElementById('timer-start-row').style.display = 'flex';
     document.getElementById('timer-running-row').style.display = 'none';
   }
