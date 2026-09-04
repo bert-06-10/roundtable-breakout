@@ -279,6 +279,7 @@
 
 <div class="admin-panel" id="admin-panel" style="display:none;"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
   // ---- Facilitator-editable content ----
   const OPENING_QUESTION = "What's a decision you're wrestling with right now — and what's making it hard?";
@@ -294,26 +295,32 @@
   document.getElementById('opening-question-text').textContent = OPENING_QUESTION;
 
   // ---- Tap logging ----
-  // Persists tap counts in this browser's localStorage. Counts are per-device/
-  // per-browser, not shared across participants — swap logTap()/getTapCounts()
-  // for a backend call (e.g. Supabase) if you need counts aggregated across everyone.
-  const TAP_KEY = 'roundtable_question_taps';
+  // Tap counts are stored in Supabase and aggregate across everyone in a
+  // session. The anon key below is safe to expose client-side: writes only
+  // happen through the increment_tap() RPC (see supabase/migrations), so the
+  // public key can bump a count but never overwrite arbitrary rows/columns.
+  const SUPABASE_URL = 'https://niyzscdfqfygvvlanbtm.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_7sW_TUxWD1nsTqIfdpbAOw_Dr0yLjUA';
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   async function getTapCounts(){
     try{
-      const raw = localStorage.getItem(TAP_KEY);
-      return raw ? JSON.parse(raw) : {};
+      const { data, error } = await db.from('question_taps').select('question, count');
+      if(error) throw error;
+      const counts = {};
+      data.forEach(row => { counts[row.question] = row.count; });
+      return counts;
     }catch(e){
+      console.error('Fetching tap counts failed', e);
       return {};
     }
   }
 
   async function logTap(questionText){
     try{
-      const counts = await getTapCounts();
-      counts[questionText] = (counts[questionText] || 0) + 1;
-      localStorage.setItem(TAP_KEY, JSON.stringify(counts));
-      return counts;
+      const { error } = await db.rpc('increment_tap', { q: questionText });
+      if(error) throw error;
+      return await getTapCounts();
     }catch(e){
       console.error('Tap logging failed', e);
       return null;
