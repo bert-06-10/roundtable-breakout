@@ -262,8 +262,6 @@
     color: var(--primary-blue);
     padding: 0 2px;
   }
-  .name-chip.pickable{ cursor:pointer; border: 1px solid transparent; }
-  .name-chip.pickable:hover{ background:#a5cdf5; }
 
   .facilitator-reveal{
     font-family: var(--serif);
@@ -324,30 +322,42 @@
       <button class="btn" onclick="showScreen('screen-facilitator')">Begin</button>
     </div>
 
-    <!-- SCREEN FACILITATOR: Add names, pick a facilitator -->
+    <!-- SCREEN FACILITATOR: Pick a facilitator -->
     <div class="screen" id="screen-facilitator">
       <div class="progress">Step 1 of 3</div>
       <div class="eyebrow"><span class="rule"></span>Your table</div>
-      <h1 class="hero">Who's here?</h1>
-      <p class="lede">Add everyone's name, then decide how to pick who'll keep today's discussion moving.</p>
+      <h1 class="hero">Pick a facilitator.</h1>
+      <p class="lede">Someone should keep today's discussion moving. Already have a volunteer, or want the app to pick one at random?</p>
 
-      <div id="names-entry">
+      <div id="facilitator-choice">
+        <div class="row">
+          <button class="btn ghost" id="pick-volunteer-btn">We have a volunteer</button>
+          <button class="btn" id="pick-random-btn">Help us choose a facilitator</button>
+        </div>
+      </div>
+
+      <div id="volunteer-entry" style="display:none;">
+        <p class="lede" style="margin-bottom:12px;">Who's volunteering?</p>
+        <div class="row" style="align-items:flex-start;">
+          <input type="text" class="session-input" id="volunteer-name-input" placeholder="Type their name" style="margin-bottom:14px;">
+          <button class="btn" id="volunteer-confirm-btn">Confirm</button>
+        </div>
+        <div class="session-error" id="volunteer-error"></div>
+        <button class="btn ghost" id="volunteer-back-btn">&larr; Choose differently</button>
+      </div>
+
+      <div id="names-entry" style="display:none;">
+        <p class="lede" style="margin-bottom:12px;">Add everyone's name, then spin to pick one:</p>
         <div class="row" style="align-items:flex-start;">
           <input type="text" class="session-input" id="name-input" placeholder="Type a name" style="margin-bottom:14px;">
           <button class="btn ghost" id="add-name-btn">Add</button>
         </div>
         <div class="names-row" id="names-list"></div>
-
         <div class="row">
-          <button class="btn ghost" id="pick-volunteer-btn">We have a volunteer</button>
-          <button class="btn" id="pick-random-btn">Help us choose a facilitator</button>
+          <button class="btn ghost" id="names-back-btn">&larr; Choose differently</button>
+          <button class="btn" id="spin-random-btn">Spin</button>
         </div>
         <div class="session-error" id="names-error"></div>
-      </div>
-
-      <div id="facilitator-pick-volunteer" style="display:none;">
-        <p class="lede" style="margin-bottom:12px;">Tap the volunteer's name:</p>
-        <div class="names-row" id="volunteer-list"></div>
       </div>
 
       <div id="facilitator-pick-random" style="display:none;">
@@ -576,7 +586,6 @@
   nameInput.addEventListener('keydown', e => { if(e.key === 'Enter') addName(); });
 
   function confirmFacilitator(name){
-    document.getElementById('facilitator-pick-volunteer').style.display = 'none';
     document.getElementById('facilitator-confirmed').style.display = 'block';
     document.getElementById('facilitator-confirmed-text').textContent = name + ' is facilitating today.';
     const badge = document.getElementById('facilitator-badge');
@@ -584,26 +593,42 @@
     badge.style.display = 'block';
   }
 
-  document.getElementById('pick-volunteer-btn').onclick = () => {
-    if(ROSTER.length === 0){
-      namesError.textContent = 'Add at least one name first.';
-      return;
-    }
-    namesError.textContent = '';
+  function backToFacilitatorChoice(){
+    document.getElementById('volunteer-entry').style.display = 'none';
     document.getElementById('names-entry').style.display = 'none';
-    const volunteerList = document.getElementById('volunteer-list');
-    volunteerList.innerHTML = '';
-    ROSTER.forEach(name => {
-      const chip = document.createElement('span');
-      chip.className = 'name-chip pickable';
-      chip.textContent = name;
-      chip.onclick = () => confirmFacilitator(name);
-      volunteerList.appendChild(chip);
-    });
-    document.getElementById('facilitator-pick-volunteer').style.display = 'block';
+    document.getElementById('facilitator-choice').style.display = 'block';
+  }
+
+  document.getElementById('pick-volunteer-btn').onclick = () => {
+    document.getElementById('facilitator-choice').style.display = 'none';
+    document.getElementById('volunteer-entry').style.display = 'block';
+    document.getElementById('volunteer-name-input').focus();
   };
 
   document.getElementById('pick-random-btn').onclick = () => {
+    document.getElementById('facilitator-choice').style.display = 'none';
+    document.getElementById('names-entry').style.display = 'block';
+  };
+
+  document.getElementById('volunteer-back-btn').onclick = backToFacilitatorChoice;
+  document.getElementById('names-back-btn').onclick = backToFacilitatorChoice;
+
+  const volunteerInput = document.getElementById('volunteer-name-input');
+  const volunteerError = document.getElementById('volunteer-error');
+  const confirmVolunteer = () => {
+    const val = volunteerInput.value.trim();
+    if(!val){
+      volunteerError.textContent = "Enter the volunteer's name.";
+      return;
+    }
+    volunteerError.textContent = '';
+    document.getElementById('volunteer-entry').style.display = 'none';
+    confirmFacilitator(val);
+  };
+  document.getElementById('volunteer-confirm-btn').onclick = confirmVolunteer;
+  volunteerInput.addEventListener('keydown', e => { if(e.key === 'Enter') confirmVolunteer(); });
+
+  document.getElementById('spin-random-btn').onclick = () => {
     if(ROSTER.length === 0){
       namesError.textContent = 'Add at least one name first.';
       return;
