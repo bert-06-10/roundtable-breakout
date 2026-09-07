@@ -329,7 +329,7 @@
       <h1 class="hero">Pick a facilitator.</h1>
       <p class="lede">Someone should keep today's discussion moving. Already have a volunteer, or want the app to pick one at random?</p>
 
-      <div id="facilitator-choice">
+      <div id="facilitator-choice" style="display:none;">
         <div class="row">
           <button class="btn ghost" id="pick-volunteer-btn">We have a volunteer</button>
           <button class="btn" id="pick-random-btn">Help us choose a facilitator</button>
@@ -366,6 +366,10 @@
 
       <div id="facilitator-confirmed" style="display:none;">
         <p class="lede" id="facilitator-confirmed-text"></p>
+        <div id="room-share-box" style="display:none;">
+          <p class="lede" style="margin-bottom:12px;">Share this link with the rest of your table — it'll skip straight to this result for them:</p>
+          <div class="share-box" id="room-share-link"></div>
+        </div>
         <button class="btn" onclick="goTo(1)">Next: introductions</button>
       </div>
     </div>
@@ -585,13 +589,65 @@
   document.getElementById('add-name-btn').onclick = addName;
   nameInput.addEventListener('keydown', e => { if(e.key === 'Enter') addName(); });
 
-  function confirmFacilitator(name){
+  // ---- Room-scoped facilitator sync ----
+  // SESSION_ID may be shared by many breakout groups on purpose (taps
+  // aggregate across all of them). ROOM_ID is unique per breakout group,
+  // generated on whichever device first reaches this screen, so each
+  // group's facilitator pick is synced to that group's devices only —
+  // never mixed up with, or overwritten by, another group's pick.
+  let ROOM_ID = urlParams.get('room');
+  if(!ROOM_ID){
+    ROOM_ID = Math.random().toString(36).slice(2, 8);
+    const roomUrl = new URL(window.location.href);
+    roomUrl.searchParams.set('room', ROOM_ID);
+    history.replaceState(null, '', roomUrl);
+  }
+
+  async function getRoomFacilitator(){
+    try{
+      const { data, error } = await db.from('rooms').select('facilitator_name').eq('room_id', ROOM_ID).maybeSingle();
+      if(error) throw error;
+      return data ? data.facilitator_name : null;
+    }catch(e){
+      console.error('Fetching room facilitator failed', e);
+      return null;
+    }
+  }
+
+  async function claimFacilitator(name){
+    try{
+      const { data, error } = await db.rpc('claim_facilitator', { r: ROOM_ID, name: name });
+      if(error) throw error;
+      return data ? data.facilitator_name : null;
+    }catch(e){
+      console.error('Facilitator sync failed', e);
+      return null;
+    }
+  }
+
+  function renderFacilitator(name){
     document.getElementById('facilitator-confirmed').style.display = 'block';
     document.getElementById('facilitator-confirmed-text').textContent = name + ' is facilitating today.';
     const badge = document.getElementById('facilitator-badge');
     badge.textContent = 'Facilitator: ' + name;
     badge.style.display = 'block';
   }
+
+  async function claimAndRender(name){
+    const finalName = (await claimFacilitator(name)) || name;
+    renderFacilitator(finalName);
+    document.getElementById('room-share-link').textContent = window.location.href;
+    document.getElementById('room-share-box').style.display = 'block';
+  }
+
+  (async function initFacilitatorScreen(){
+    const existing = await getRoomFacilitator();
+    if(existing){
+      renderFacilitator(existing);
+    }else{
+      document.getElementById('facilitator-choice').style.display = 'block';
+    }
+  })();
 
   function backToFacilitatorChoice(){
     document.getElementById('volunteer-entry').style.display = 'none';
@@ -623,7 +679,7 @@
     }
     volunteerError.textContent = '';
     document.getElementById('volunteer-entry').style.display = 'none';
-    confirmFacilitator(val);
+    claimAndRender(val);
   };
   document.getElementById('volunteer-confirm-btn').onclick = confirmVolunteer;
   volunteerInput.addEventListener('keydown', e => { if(e.key === 'Enter') confirmVolunteer(); });
@@ -646,7 +702,7 @@
         clearInterval(spin);
         const winner = ROSTER[Math.floor(Math.random() * ROSTER.length)];
         revealEl.textContent = winner;
-        confirmFacilitator(winner);
+        claimAndRender(winner);
       }
     }, 90);
   };
