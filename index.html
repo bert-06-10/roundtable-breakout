@@ -279,6 +279,15 @@
     margin-bottom: 14px;
   }
 
+  .intro-prompts{
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--charcoal);
+    margin: 0 0 24px 0;
+    padding-left: 20px;
+  }
+
   @media (max-width: 480px){
     h1.hero{ font-size:26px; }
     h2.question{ font-size:24px; }
@@ -379,7 +388,14 @@
       <div class="progress">Step 2 of 3</div>
       <div class="eyebrow"><span class="rule"></span>Introductions</div>
       <h1 class="hero">Go around the group.</h1>
-      <p class="lede">Share your name, your role, and one thing you're hoping to get out of today's session. About a minute each is plenty.</p>
+      <p class="lede">Share:</p>
+      <ul class="intro-prompts">
+        <li>Name</li>
+        <li>Location</li>
+        <li>Role</li>
+        <li>Company</li>
+      </ul>
+      <p class="lede">About a minute each is plenty.</p>
 
       <div class="timer-block" id="timer-block">
         <div class="row" id="timer-start-row">
@@ -398,7 +414,7 @@
     <div class="screen" id="screen-2">
       <div class="progress">Step 3 of 3</div>
       <div class="question-label">Opening question — everyone reflects on this one</div>
-      <h2 class="question" id="opening-question-text">What's one thing you could do to boost trust within your org/team tomorrow?</h2>
+      <h2 class="question" id="opening-question-text">What's one thing you plan to do to boost trust within your org/team immediately?</h2>
       <button class="btn" onclick="goTo(3)">Begin discussion</button>
     </div>
 
@@ -427,14 +443,13 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
   // ---- Facilitator-editable content ----
-  const OPENING_QUESTION = "What's one thing you could do to boost trust within your org/team tomorrow?";
+  const OPENING_QUESTION = "What's one thing you plan to do to boost trust within your org/team immediately?";
   const BACKUP_QUESTIONS = [
-    "What would you do differently here if you weren't afraid of how it looks?",
-    "Who in your organization has influence without formal authority — and how did they get it?",
-    "What's a piece of feedback you've been given but haven't really acted on?",
-    "Where might you be overestimating how much control you actually have over this?",
-    "What's an assumption in your plan that you haven't actually tested?",
-    "If someone on your team described this the way you just did, what would you tell them?"
+    "There are so many communication channels in a modern organization. Share how you've gotten signal through the noise.",
+    "What are your tips for delegating work when you feel overwhelmed?",
+    "Do people on the front lines of your organization have opportunities to make autonomous decisions? If yes, how is that power conferred? If no, what would it take for your organization to create this opportunity?",
+    "Does your company have a culture of inviting the \"unusual suspects\" to the table? If yes, how does that work in practice? If no, what is one thing you could do immediately to include them?",
+    "What is one challenge you're facing at work right now? How have others in the group worked through similar challenges?"
   ];
 
   document.getElementById('opening-question-text').textContent = OPENING_QUESTION;
