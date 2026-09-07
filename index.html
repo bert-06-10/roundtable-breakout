@@ -242,6 +242,45 @@
     word-break: break-all;
   }
 
+  .names-row{ display:flex; flex-wrap:wrap; margin: 4px 0 20px 0; }
+  .name-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background: var(--sky-blue);
+    color: var(--deep-navy);
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight:500;
+    padding: 7px 12px 7px 14px;
+    border-radius: 999px;
+    margin: 0 8px 8px 0;
+  }
+  .name-chip .remove{
+    cursor:pointer;
+    font-weight:700;
+    color: var(--primary-blue);
+    padding: 0 2px;
+  }
+  .name-chip.pickable{ cursor:pointer; border: 1px solid transparent; }
+  .name-chip.pickable:hover{ background:#a5cdf5; }
+
+  .facilitator-reveal{
+    font-family: var(--serif);
+    font-size: 26px;
+    font-weight:600;
+    color: var(--forest-green);
+    margin: 8px 0 20px 0;
+    min-height: 34px;
+  }
+  .facilitator-badge{
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--forest-green);
+    margin-bottom: 14px;
+  }
+
   @media (max-width: 480px){
     h1.hero{ font-size:26px; }
     h2.question{ font-size:24px; }
@@ -252,6 +291,8 @@
 
 <div id="app">
   <div class="card">
+
+    <div class="facilitator-badge" id="facilitator-badge" style="display:none;"></div>
 
     <!-- SCREEN SESSION: Name this session (gate before screen 0) -->
     <div class="screen" id="screen-session">
@@ -280,12 +321,48 @@
       <div class="eyebrow"><span class="rule"></span>Roundtable</div>
       <h1 class="hero">A short guide to open your discussion.</h1>
       <p class="lede">Two quick steps to get everyone talking — then it's yours. If things ever stall, there's a list of questions to pull from.</p>
-      <button class="btn" onclick="goTo(1)">Begin</button>
+      <button class="btn" onclick="showScreen('screen-facilitator')">Begin</button>
+    </div>
+
+    <!-- SCREEN FACILITATOR: Add names, pick a facilitator -->
+    <div class="screen" id="screen-facilitator">
+      <div class="progress">Step 1 of 3</div>
+      <div class="eyebrow"><span class="rule"></span>Your table</div>
+      <h1 class="hero">Who's here?</h1>
+      <p class="lede">Add everyone's name, then decide how to pick who'll keep today's discussion moving.</p>
+
+      <div id="names-entry">
+        <div class="row" style="align-items:flex-start;">
+          <input type="text" class="session-input" id="name-input" placeholder="Type a name" style="margin-bottom:14px;">
+          <button class="btn ghost" id="add-name-btn">Add</button>
+        </div>
+        <div class="names-row" id="names-list"></div>
+
+        <div class="row">
+          <button class="btn ghost" id="pick-volunteer-btn">We have a volunteer</button>
+          <button class="btn" id="pick-random-btn">Help us choose a facilitator</button>
+        </div>
+        <div class="session-error" id="names-error"></div>
+      </div>
+
+      <div id="facilitator-pick-volunteer" style="display:none;">
+        <p class="lede" style="margin-bottom:12px;">Tap the volunteer's name:</p>
+        <div class="names-row" id="volunteer-list"></div>
+      </div>
+
+      <div id="facilitator-pick-random" style="display:none;">
+        <div class="facilitator-reveal" id="facilitator-reveal-text"></div>
+      </div>
+
+      <div id="facilitator-confirmed" style="display:none;">
+        <p class="lede" id="facilitator-confirmed-text"></p>
+        <button class="btn" onclick="goTo(1)">Next: introductions</button>
+      </div>
     </div>
 
     <!-- SCREEN 1: Intros -->
     <div class="screen" id="screen-1">
-      <div class="progress">Step 1 of 2</div>
+      <div class="progress">Step 2 of 3</div>
       <div class="eyebrow"><span class="rule"></span>Introductions</div>
       <h1 class="hero">Go around the group.</h1>
       <p class="lede">Share your name, your role, and one thing you're hoping to get out of today's session. About a minute each is plenty.</p>
@@ -305,7 +382,7 @@
 
     <!-- SCREEN 2: Opening question -->
     <div class="screen" id="screen-2">
-      <div class="progress">Step 2 of 2</div>
+      <div class="progress">Step 3 of 3</div>
       <div class="question-label">Opening question — everyone reflects on this one</div>
       <h2 class="question" id="opening-question-text">What's one thing you could do to boost trust within your org/team tomorrow?</h2>
       <button class="btn" onclick="goTo(3)">Begin discussion</button>
@@ -454,11 +531,100 @@
     panel.appendChild(div);
   });
 
-  function goTo(n){
+  function showScreen(id){
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById('screen-' + n).classList.add('active');
+    document.getElementById(id).classList.add('active');
+  }
+
+  function goTo(n){
+    showScreen('screen-' + n);
     document.getElementById('helper-dock').style.display = (n === 3) ? 'block' : 'none';
   }
+
+  // ---- Table roster + facilitator picker ----
+  let ROSTER = [];
+
+  function renderNamesList(){
+    const list = document.getElementById('names-list');
+    list.innerHTML = '';
+    ROSTER.forEach((name, i) => {
+      const chip = document.createElement('span');
+      chip.className = 'name-chip';
+      chip.textContent = name;
+      const remove = document.createElement('span');
+      remove.className = 'remove';
+      remove.textContent = '×';
+      remove.onclick = () => { ROSTER.splice(i, 1); renderNamesList(); };
+      chip.appendChild(remove);
+      list.appendChild(chip);
+    });
+  }
+
+  const nameInput = document.getElementById('name-input');
+  const namesError = document.getElementById('names-error');
+  const addName = () => {
+    const val = nameInput.value.trim();
+    if(val){
+      ROSTER.push(val);
+      nameInput.value = '';
+      namesError.textContent = '';
+      renderNamesList();
+      nameInput.focus();
+    }
+  };
+  document.getElementById('add-name-btn').onclick = addName;
+  nameInput.addEventListener('keydown', e => { if(e.key === 'Enter') addName(); });
+
+  function confirmFacilitator(name){
+    document.getElementById('facilitator-pick-volunteer').style.display = 'none';
+    document.getElementById('facilitator-confirmed').style.display = 'block';
+    document.getElementById('facilitator-confirmed-text').textContent = name + ' is facilitating today.';
+    const badge = document.getElementById('facilitator-badge');
+    badge.textContent = 'Facilitator: ' + name;
+    badge.style.display = 'block';
+  }
+
+  document.getElementById('pick-volunteer-btn').onclick = () => {
+    if(ROSTER.length === 0){
+      namesError.textContent = 'Add at least one name first.';
+      return;
+    }
+    namesError.textContent = '';
+    document.getElementById('names-entry').style.display = 'none';
+    const volunteerList = document.getElementById('volunteer-list');
+    volunteerList.innerHTML = '';
+    ROSTER.forEach(name => {
+      const chip = document.createElement('span');
+      chip.className = 'name-chip pickable';
+      chip.textContent = name;
+      chip.onclick = () => confirmFacilitator(name);
+      volunteerList.appendChild(chip);
+    });
+    document.getElementById('facilitator-pick-volunteer').style.display = 'block';
+  };
+
+  document.getElementById('pick-random-btn').onclick = () => {
+    if(ROSTER.length === 0){
+      namesError.textContent = 'Add at least one name first.';
+      return;
+    }
+    namesError.textContent = '';
+    document.getElementById('names-entry').style.display = 'none';
+    document.getElementById('facilitator-pick-random').style.display = 'block';
+    const revealEl = document.getElementById('facilitator-reveal-text');
+    let ticks = 0;
+    const maxTicks = 18;
+    const spin = setInterval(() => {
+      revealEl.textContent = ROSTER[Math.floor(Math.random() * ROSTER.length)];
+      ticks++;
+      if(ticks >= maxTicks){
+        clearInterval(spin);
+        const winner = ROSTER[Math.floor(Math.random() * ROSTER.length)];
+        revealEl.textContent = winner;
+        confirmFacilitator(winner);
+      }
+    }, 90);
+  };
 
   function togglePanel(){
     panel.classList.toggle('open');
