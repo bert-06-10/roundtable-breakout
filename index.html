@@ -128,12 +128,7 @@
   .quiet-wrap .lede{ margin-left:auto; margin-right:auto; }
 
   .helper-dock{
-    position: fixed;
-    bottom: 28px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: calc(100% - 40px);
-    max-width: 560px;
+    margin-top: 32px;
   }
   .helper-pill{
     font-family: var(--sans);
@@ -429,17 +424,17 @@
         <h1 class="hero">Take it from here.</h1>
         <p class="lede">No more steps — talk about whatever the opening question brought up. If it ever stalls, there's a list below.</p>
       </div>
+
+      <div class="helper-dock" id="helper-dock" style="display:none;">
+        <div class="helper-pill" onclick="togglePanel()">
+          <span>Stuck? Pull a question</span>
+          <span class="plus" id="dock-icon">+</span>
+        </div>
+        <div class="panel" id="question-panel"></div>
+      </div>
     </div>
 
   </div>
-</div>
-
-<div class="helper-dock" id="helper-dock" style="display:none;">
-  <div class="helper-pill" onclick="togglePanel()">
-    <span>Stuck? Pull a question</span>
-    <span class="plus" id="dock-icon">+</span>
-  </div>
-  <div class="panel" id="question-panel"></div>
 </div>
 
 <div class="admin-panel" id="admin-panel" style="display:none;"></div>
