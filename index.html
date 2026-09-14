@@ -274,6 +274,20 @@
     margin-bottom: 14px;
   }
 
+  .back-link{
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--charcoal);
+    background: none;
+    border: none;
+    padding: 0;
+    margin-bottom: 16px;
+    cursor: pointer;
+    display: block;
+  }
+  .back-link:hover{ color: var(--primary-blue); }
+
   .intro-prompts{
     font-family: var(--sans);
     font-size: 16px;
@@ -320,6 +334,7 @@
 
     <!-- SCREEN 0: Welcome -->
     <div class="screen" id="screen-0">
+      <button class="back-link" onclick="goBack()" style="display:none;">&larr; Back</button>
       <div class="eyebrow"><span class="rule"></span>Roundtable</div>
       <h1 class="hero">A short guide to open your discussion.</h1>
       <p class="lede">Two quick steps to get everyone talking — then it's yours. If things ever stall, there's a list of questions to pull from.</p>
@@ -328,6 +343,7 @@
 
     <!-- SCREEN FACILITATOR: Pick a facilitator -->
     <div class="screen" id="screen-facilitator">
+      <button class="back-link" onclick="goBack()" style="display:none;">&larr; Back</button>
       <div class="progress">Step 1 of 3</div>
       <div class="eyebrow"><span class="rule"></span>Your table</div>
       <h1 class="hero">Pick a facilitator.</h1>
@@ -384,6 +400,7 @@
 
     <!-- SCREEN 1: Intros -->
     <div class="screen" id="screen-1">
+      <button class="back-link" onclick="goBack()" style="display:none;">&larr; Back</button>
       <div class="progress">Step 2 of 3</div>
       <div class="eyebrow"><span class="rule"></span>Introductions</div>
       <h1 class="hero">Go around the group.</h1>
@@ -411,6 +428,7 @@
 
     <!-- SCREEN 2: Opening question -->
     <div class="screen" id="screen-2">
+      <button class="back-link" onclick="goBack()" style="display:none;">&larr; Back</button>
       <div class="progress">Step 3 of 3</div>
       <div class="question-label">Opening question — everyone reflects on this one</div>
       <h2 class="question" id="opening-question-text">What elements of style or substance have you experimented with since watching the Jan Carlzon video? What was the result?</h2>
@@ -419,6 +437,7 @@
 
     <!-- SCREEN 3: Discussion (quiet) -->
     <div class="screen" id="screen-3">
+      <button class="back-link" onclick="goBack()" style="display:none;">&larr; Back</button>
       <div class="quiet-wrap">
         <div class="eyebrow" style="justify-content:center;"><span class="rule"></span>Discussion<span class="rule"></span></div>
         <h1 class="hero">Take it from here.</h1>
@@ -468,8 +487,7 @@
   }
 
   function beginSessionForReal(){
-    document.getElementById('screen-session').classList.remove('active');
-    document.getElementById('screen-0').classList.add('active');
+    showScreen('screen-0');
   }
 
   if(SESSION_ID){
@@ -561,9 +579,27 @@
     panel.appendChild(div);
   });
 
-  function showScreen(id){
+  // ---- Screen navigation + back button ----
+  // A simple history stack (rather than a fixed "previous screen" map)
+  // so Back always returns wherever the user actually came from, even
+  // with branching paths like "Skip for now" or "Skip to opening question".
+  let navHistory = [];
+
+  function showScreen(id, isBack){
+    const current = document.querySelector('.screen.active');
+    if(!isBack && current && current.id !== id){
+      navHistory.push(current.id);
+    }
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.back-link').forEach(btn => {
+      btn.style.display = navHistory.length ? 'block' : 'none';
+    });
+  }
+
+  function goBack(){
+    const prev = navHistory.pop();
+    if(prev) showScreen(prev, true);
   }
 
   function goTo(n){
