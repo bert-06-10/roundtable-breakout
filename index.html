@@ -205,38 +205,6 @@
   }
   .admin-panel b{ color: var(--sage-mist); }
 
-  .session-input{
-    font-family: var(--sans);
-    font-size: 15px;
-    padding: 12px 14px;
-    border: 1px solid var(--sky-blue);
-    border-radius: 3px;
-    width: 100%;
-    max-width: 320px;
-    color: var(--deep-navy);
-    display: block;
-    margin-bottom: 10px;
-  }
-  .session-input:focus{ outline: none; border-color: var(--primary-blue); }
-  .session-error{
-    font-family: var(--sans);
-    font-size: 13px;
-    color: #b3352c;
-    margin: 0 0 14px 0;
-    min-height: 16px;
-  }
-  .share-box{
-    font-family: var(--sans);
-    font-size: 13px;
-    color: var(--charcoal);
-    background: var(--off-white);
-    border: 1px solid var(--sky-blue);
-    border-radius: 4px;
-    padding: 10px 12px;
-    margin: 4px 0 24px 0;
-    word-break: break-all;
-  }
-
   .back-link{
     font-family: var(--sans);
     font-size: 13px;
@@ -270,28 +238,6 @@
 
 <div id="app">
   <div class="card">
-
-    <!-- SCREEN SESSION: Name this session (gate before screen 0) -->
-    <div class="screen" id="screen-session">
-      <div class="eyebrow"><span class="rule"></span>Roundtable</div>
-      <h1 class="hero">Name this session.</h1>
-      <p class="lede">Give this discussion a short name so backup-question taps stay separate from other sessions. You'll get a link to share with the group right after.</p>
-
-      <div id="session-form">
-        <input type="text" class="session-input" id="session-name-input" placeholder="e.g. tuesday-standup" maxlength="60">
-        <div class="session-error" id="session-name-error"></div>
-        <button class="btn" id="session-continue-btn">Continue</button>
-      </div>
-
-      <div id="session-ready" style="display:none;">
-        <p class="lede" style="margin-bottom:12px;">Share this link with your group — everyone should open the same one:</p>
-        <div class="share-box" id="session-share-link"></div>
-        <div class="row">
-          <button class="btn ghost" id="session-copy-btn">Copy link</button>
-          <button class="btn" id="session-begin-btn">Begin</button>
-        </div>
-      </div>
-    </div>
 
     <!-- SCREEN 0: Welcome -->
     <div class="screen" id="screen-0">
@@ -378,59 +324,15 @@
 
   document.getElementById('opening-question-text').textContent = OPENING_QUESTION;
 
-  // ---- Session naming ----
-  // Tap counts are scoped by session name so different groups/days don't mix
-  // in the admin view. Nothing logs until a session name is set: either read
-  // from the URL (?session=name, the link a facilitator shares) or entered
-  // once by the facilitator on the session-gate screen below.
+  // ---- Session id ----
+  // Every visitor lands straight on screen 0 and moves through the flow at
+  // their own pace — no shared link, no facilitator gate. Tap counts still
+  // group by SESSION_ID so the admin ?taps=1 view stays meaningful; it
+  // defaults to today's date (UTC) unless overridden with ?session=name.
   const urlParams = new URLSearchParams(window.location.search);
-  let SESSION_ID = urlParams.get('session');
+  const SESSION_ID = urlParams.get('session') || new Date().toISOString().slice(0, 10);
 
-  function slugify(raw){
-    return raw.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-+|-+$)/g, '').slice(0, 60);
-  }
-
-  function beginSessionForReal(){
-    showScreen('screen-0');
-  }
-
-  if(SESSION_ID){
-    document.getElementById('screen-0').classList.add('active');
-  }else{
-    document.getElementById('screen-session').classList.add('active');
-
-    const input = document.getElementById('session-name-input');
-    const errorEl = document.getElementById('session-name-error');
-
-    const continueToShare = () => {
-      const slug = slugify(input.value);
-      if(!slug){
-        errorEl.textContent = 'Give this session a short name to continue.';
-        return;
-      }
-      errorEl.textContent = '';
-      SESSION_ID = slug;
-
-      const shareUrl = new URL(window.location.href);
-      shareUrl.searchParams.set('session', slug);
-      history.replaceState(null, '', shareUrl);
-
-      document.getElementById('session-form').style.display = 'none';
-      document.getElementById('session-ready').style.display = 'block';
-      document.getElementById('session-share-link').textContent = shareUrl.toString();
-    };
-
-    document.getElementById('session-continue-btn').onclick = continueToShare;
-    input.addEventListener('keydown', e => { if(e.key === 'Enter') continueToShare(); });
-
-    document.getElementById('session-copy-btn').onclick = () => {
-      navigator.clipboard.writeText(document.getElementById('session-share-link').textContent).then(() => {
-        document.getElementById('session-copy-btn').textContent = 'Copied ✓';
-      });
-    };
-
-    document.getElementById('session-begin-btn').onclick = beginSessionForReal;
-  }
+  document.getElementById('screen-0').classList.add('active');
 
   // ---- Tap logging ----
   // Tap counts are stored in Supabase, scoped to SESSION_ID. The anon key

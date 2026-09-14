@@ -1,11 +1,11 @@
 # Roundtable
 
-A short guided flow to open a group discussion: name the session,
-introductions with an optional quiet timer, an opening question, then a
-free discussion screen with a pull-out list of backup questions if the
-conversation stalls. One single link works for every participant in every
-breakout group, independently — nobody needs to coordinate with anyone
-else in their group to use it.
+A short guided flow to open a group discussion: introductions with an
+optional quiet timer, an opening question, then a free discussion screen
+with a pull-out list of backup questions if the conversation stalls. The
+same single link works for every participant, and each person moves
+through the screens independently, at their own pace — nobody needs to
+coordinate with or wait on anyone else to use it.
 
 Live at https://roundtable-prototype-rose.vercel.app
 
@@ -15,14 +15,14 @@ Static, single-file, no build step — just open `index.html` in a browser,
 or serve the folder with any static server (`.claude/launch.json` runs one
 via `python3 -m http.server`).
 
-## Starting a session
+## Session id
 
-The first screen asks for a session name (e.g. `tuesday-standup`), appended
-to the URL as `?session=<name>`. This is shared across every breakout group
-in the event on purpose — `?session=<name>&taps=1` shows one combined tally
-of backup-question taps for everyone using that session name, regardless of
-which breakout group they were in. Name it once and hand out the resulting
-link; every participant opens the exact same URL.
+Everyone lands straight on the welcome screen — no name-a-session step, no
+link to copy and hand out. Backup-question taps are still tallied in
+Supabase, grouped under a `SESSION_ID` that defaults to today's date (UTC)
+so the admin view (`?taps=1`) stays meaningful without anyone having to set
+it up. Add `?session=<name>` to the URL to override that default, e.g. to
+keep one tally running across midnight.
 
 ## Notes
 
