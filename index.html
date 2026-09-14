@@ -566,6 +566,12 @@
     const s = String(seconds%60).padStart(2,'0');
     document.getElementById('timer-display').textContent = m + ':' + s;
   }
+  function resetTimerUI(){
+    seconds = TIMER_START_SECONDS;
+    renderTimer();
+    document.getElementById('timer-start-row').style.display = 'flex';
+    document.getElementById('timer-running-row').style.display = 'none';
+  }
   function startTimer(){
     seconds = TIMER_START_SECONDS;
     renderTimer();
@@ -576,15 +582,13 @@
       renderTimer();
       if(seconds <= 0){
         clearInterval(timerInterval);
+        resetTimerUI();
       }
     }, 1000);
   }
   function stopTimer(){
     clearInterval(timerInterval);
-    seconds = TIMER_START_SECONDS;
-    renderTimer();
-    document.getElementById('timer-start-row').style.display = 'flex';
-    document.getElementById('timer-running-row').style.display = 'none';
+    resetTimerUI();
   }
 
   // ---- Optional admin view: add ?taps=1 (and ?session=name) to see logged counts ----
