@@ -401,60 +401,76 @@
   document.getElementById('screen-facilitator-gate').classList.add('active');
 
   // ---- Facilitator picker ----
+  // resetFacilitatorNames() is called by showScreen() every time this
+  // screen becomes active (including via the Back link), so returning to
+  // it mid-session always starts from a blank form rather than showing
+  // whoever was previously picked.
   document.getElementById('facilitator-gate-yes').onclick = () => showScreen('screen-facilitator-names');
   document.getElementById('facilitator-gate-no').onclick = () => showScreen('screen-0');
 
-  (function(){
-    const form = document.getElementById('facilitator-form');
+  function parseFacilitatorNames(raw){
+    return raw.split('\n').map(s => s.trim()).filter(Boolean);
+  }
+
+  let facilitatorCycleToken = 0;
+
+  function resetFacilitatorNames(){
+    facilitatorCycleToken++; // invalidate any in-flight cycle animation
+    document.getElementById('facilitator-names-input').value = '';
+    document.getElementById('facilitator-names-error').textContent = '';
+    document.getElementById('facilitator-form').style.display = 'block';
+    document.getElementById('facilitator-cycle').style.display = 'none';
+    document.getElementById('facilitator-result').style.display = 'none';
+  }
+
+  document.getElementById('facilitator-pick-btn').onclick = () => {
     const input = document.getElementById('facilitator-names-input');
     const errorEl = document.getElementById('facilitator-names-error');
+    const names = parseFacilitatorNames(input.value);
+    if(names.length < 2){
+      errorEl.textContent = 'Enter at least two names to pick from.';
+      return;
+    }
+    errorEl.textContent = '';
+
+    const form = document.getElementById('facilitator-form');
     const cycleBlock = document.getElementById('facilitator-cycle');
     const cycleNameEl = document.getElementById('facilitator-cycle-name');
     const resultBlock = document.getElementById('facilitator-result');
     const resultNameEl = document.getElementById('facilitator-result-name');
 
-    function parseNames(raw){
-      return raw.split('\n').map(s => s.trim()).filter(Boolean);
+    form.style.display = 'none';
+    cycleBlock.style.display = 'block';
+
+    const winner = names[Math.floor(Math.random() * names.length)];
+    const token = ++facilitatorCycleToken;
+    let idx = 0;
+    let delay = 80;
+    let step = 0;
+    const totalSteps = 18;
+
+    function tick(){
+      if(token !== facilitatorCycleToken) return;
+      cycleNameEl.textContent = names[idx % names.length];
+      idx++;
+      step++;
+      delay += 12;
+      if(step < totalSteps){
+        setTimeout(tick, delay);
+      }else{
+        cycleNameEl.textContent = winner;
+        setTimeout(() => {
+          if(token !== facilitatorCycleToken) return;
+          cycleBlock.style.display = 'none';
+          resultNameEl.textContent = winner;
+          resultBlock.style.display = 'block';
+        }, 500);
+      }
     }
+    tick();
+  };
 
-    document.getElementById('facilitator-pick-btn').onclick = () => {
-      const names = parseNames(input.value);
-      if(names.length < 2){
-        errorEl.textContent = 'Enter at least two names to pick from.';
-        return;
-      }
-      errorEl.textContent = '';
-
-      form.style.display = 'none';
-      cycleBlock.style.display = 'block';
-
-      const winner = names[Math.floor(Math.random() * names.length)];
-      let idx = 0;
-      let delay = 80;
-      let step = 0;
-      const totalSteps = 18;
-
-      function tick(){
-        cycleNameEl.textContent = names[idx % names.length];
-        idx++;
-        step++;
-        delay += 12;
-        if(step < totalSteps){
-          setTimeout(tick, delay);
-        }else{
-          cycleNameEl.textContent = winner;
-          setTimeout(() => {
-            cycleBlock.style.display = 'none';
-            resultNameEl.textContent = winner;
-            resultBlock.style.display = 'block';
-          }, 500);
-        }
-      }
-      tick();
-    };
-
-    document.getElementById('facilitator-continue-btn').onclick = () => showScreen('screen-0');
-  })();
+  document.getElementById('facilitator-continue-btn').onclick = () => showScreen('screen-0');
 
   // ---- Tap logging ----
   // Tap counts are stored in Supabase, scoped to SESSION_ID. The anon key
@@ -523,6 +539,7 @@
     document.querySelectorAll('.back-link').forEach(btn => {
       btn.style.display = navHistory.length ? 'block' : 'none';
     });
+    if(id === 'screen-facilitator-names') resetFacilitatorNames();
   }
 
   function goBack(){
