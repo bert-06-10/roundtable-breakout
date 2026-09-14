@@ -1,11 +1,11 @@
 # Roundtable
 
-A short guided flow to open a group discussion: introductions with an
-optional quiet timer, an opening question, then a free discussion screen
-with a pull-out list of backup questions if the conversation stalls. The
-same single link works for every participant, and each person moves
-through the screens independently, at their own pace — nobody needs to
-coordinate with or wait on anyone else to use it.
+A short guided flow to open a group discussion: an optional facilitator
+picker, introductions with an optional quiet timer, an opening question,
+then a free discussion screen with a pull-out list of backup questions if
+the conversation stalls. The same single link works for every participant,
+and each person moves through the screens independently, at their own pace
+— nobody needs to coordinate with or wait on anyone else to use it.
 
 Live at https://roundtable-prototype-rose.vercel.app
 
@@ -14,6 +14,15 @@ Live at https://roundtable-prototype-rose.vercel.app
 Static, single-file, no build step — just open `index.html` in a browser,
 or serve the folder with any static server (`.claude/launch.json` runs one
 via `python3 -m http.server`).
+
+## Facilitator picker
+
+The first screen asks whether the group needs help picking a facilitator.
+"No" skips straight to the welcome screen. "Yes" prompts for one name per
+line, then randomly picks one and shows the result before continuing. This
+runs entirely client-side (nothing saved to Supabase) — it's per-browser
+and doesn't need coordination between participants any more than the rest
+of the flow does.
 
 ## Session id
 

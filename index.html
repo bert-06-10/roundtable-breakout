@@ -228,6 +228,36 @@
     padding-left: 20px;
   }
 
+  .facilitator-textarea{
+    font-family: var(--sans);
+    font-size: 15px;
+    padding: 12px 14px;
+    border: 1px solid var(--sky-blue);
+    border-radius: 3px;
+    width: 100%;
+    max-width: 320px;
+    min-height: 110px;
+    resize: vertical;
+    color: var(--deep-navy);
+    display: block;
+    margin-bottom: 10px;
+  }
+  .facilitator-textarea:focus{ outline: none; border-color: var(--primary-blue); }
+  .facilitator-error{
+    font-family: var(--sans);
+    font-size: 13px;
+    color: #b3352c;
+    margin: 0 0 14px 0;
+    min-height: 16px;
+  }
+  .facilitator-cycle-name{
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 30px;
+    color: var(--forest-green);
+    margin: 0 0 32px 0;
+  }
+
   @media (max-width: 480px){
     h1.hero{ font-size:26px; }
     h2.question{ font-size:24px; }
@@ -238,6 +268,42 @@
 
 <div id="app">
   <div class="card">
+
+    <!-- SCREEN FACILITATOR GATE: Ask if the group needs a facilitator picked -->
+    <div class="screen" id="screen-facilitator-gate">
+      <div class="eyebrow"><span class="rule"></span>Roundtable</div>
+      <h1 class="hero">Does your group need help selecting a facilitator?</h1>
+      <p class="lede">The facilitator keeps things moving and can pull from the backup questions if conversation stalls.</p>
+      <div class="row">
+        <button class="btn" id="facilitator-gate-yes">Yes</button>
+        <button class="btn ghost" id="facilitator-gate-no">No</button>
+      </div>
+    </div>
+
+    <!-- SCREEN FACILITATOR NAMES: Enter names, randomly pick one -->
+    <div class="screen" id="screen-facilitator-names">
+      <button class="back-link" onclick="goBack()" style="display:none;">&larr; Back</button>
+      <div class="eyebrow"><span class="rule"></span>Roundtable</div>
+
+      <div id="facilitator-form">
+        <h1 class="hero">Who's in the group?</h1>
+        <p class="lede">Enter each person's name on its own line. We'll randomly pick one to facilitate.</p>
+        <textarea class="facilitator-textarea" id="facilitator-names-input" placeholder="Amir&#10;Becca&#10;Dana"></textarea>
+        <div class="facilitator-error" id="facilitator-names-error"></div>
+        <button class="btn" id="facilitator-pick-btn">Pick a facilitator</button>
+      </div>
+
+      <div id="facilitator-cycle" style="display:none;">
+        <p class="question-label">Picking a facilitator&hellip;</p>
+        <h2 class="facilitator-cycle-name" id="facilitator-cycle-name"></h2>
+      </div>
+
+      <div id="facilitator-result" style="display:none;">
+        <p class="question-label">Facilitator</p>
+        <h2 class="question" id="facilitator-result-name"></h2>
+        <button class="btn" id="facilitator-continue-btn">Continue</button>
+      </div>
+    </div>
 
     <!-- SCREEN 0: Welcome -->
     <div class="screen" id="screen-0">
@@ -325,14 +391,70 @@
   document.getElementById('opening-question-text').textContent = OPENING_QUESTION;
 
   // ---- Session id ----
-  // Every visitor lands straight on screen 0 and moves through the flow at
-  // their own pace — no shared link, no facilitator gate. Tap counts still
-  // group by SESSION_ID so the admin ?taps=1 view stays meaningful; it
-  // defaults to today's date (UTC) unless overridden with ?session=name.
+  // Every visitor moves through the flow at their own pace — no shared
+  // link required. Tap counts still group by SESSION_ID so the admin
+  // ?taps=1 view stays meaningful; it defaults to today's date (UTC)
+  // unless overridden with ?session=name.
   const urlParams = new URLSearchParams(window.location.search);
   const SESSION_ID = urlParams.get('session') || new Date().toISOString().slice(0, 10);
 
-  document.getElementById('screen-0').classList.add('active');
+  document.getElementById('screen-facilitator-gate').classList.add('active');
+
+  // ---- Facilitator picker ----
+  document.getElementById('facilitator-gate-yes').onclick = () => showScreen('screen-facilitator-names');
+  document.getElementById('facilitator-gate-no').onclick = () => showScreen('screen-0');
+
+  (function(){
+    const form = document.getElementById('facilitator-form');
+    const input = document.getElementById('facilitator-names-input');
+    const errorEl = document.getElementById('facilitator-names-error');
+    const cycleBlock = document.getElementById('facilitator-cycle');
+    const cycleNameEl = document.getElementById('facilitator-cycle-name');
+    const resultBlock = document.getElementById('facilitator-result');
+    const resultNameEl = document.getElementById('facilitator-result-name');
+
+    function parseNames(raw){
+      return raw.split('\n').map(s => s.trim()).filter(Boolean);
+    }
+
+    document.getElementById('facilitator-pick-btn').onclick = () => {
+      const names = parseNames(input.value);
+      if(names.length < 2){
+        errorEl.textContent = 'Enter at least two names to pick from.';
+        return;
+      }
+      errorEl.textContent = '';
+
+      form.style.display = 'none';
+      cycleBlock.style.display = 'block';
+
+      const winner = names[Math.floor(Math.random() * names.length)];
+      let idx = 0;
+      let delay = 80;
+      let step = 0;
+      const totalSteps = 18;
+
+      function tick(){
+        cycleNameEl.textContent = names[idx % names.length];
+        idx++;
+        step++;
+        delay += 12;
+        if(step < totalSteps){
+          setTimeout(tick, delay);
+        }else{
+          cycleNameEl.textContent = winner;
+          setTimeout(() => {
+            cycleBlock.style.display = 'none';
+            resultNameEl.textContent = winner;
+            resultBlock.style.display = 'block';
+          }, 500);
+        }
+      }
+      tick();
+    };
+
+    document.getElementById('facilitator-continue-btn').onclick = () => showScreen('screen-0');
+  })();
 
   // ---- Tap logging ----
   // Tap counts are stored in Supabase, scoped to SESSION_ID. The anon key
