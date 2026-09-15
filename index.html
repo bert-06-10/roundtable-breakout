@@ -290,10 +290,13 @@
 
       <div id="facilitator-form">
         <h1 class="hero">Who's in the group?</h1>
-        <p class="lede">Select one person to enter each person's name on its own line. We'll randomly pick one to facilitate.<br>Note: The person who volunteers to input names is <em>not</em> automatically the facilitator.</p>
+        <p class="lede">Select one person to enter each person's name on its own line. We'll randomly pick one to facilitate.<br><br>Note: The person who volunteers to input names is <em>not</em> automatically the facilitator.</p>
         <textarea class="facilitator-textarea" id="facilitator-names-input" placeholder="Amir&#10;Becca&#10;Dana"></textarea>
         <div class="facilitator-error" id="facilitator-names-error"></div>
-        <button class="btn" id="facilitator-pick-btn">Pick a facilitator</button>
+        <div class="row">
+          <button class="btn" id="facilitator-pick-btn">Pick a facilitator</button>
+          <button class="btn ghost" id="facilitator-skip-btn">Skip to introductions</button>
+        </div>
       </div>
 
       <div id="facilitator-cycle" style="display:none;">
@@ -462,6 +465,7 @@
   };
 
   document.getElementById('facilitator-continue-btn').onclick = () => showScreen('screen-1');
+  document.getElementById('facilitator-skip-btn').onclick = () => showScreen('screen-1');
 
   // ---- Tap logging ----
   // Tap counts are stored in Supabase, scoped to SESSION_ID. The anon key
