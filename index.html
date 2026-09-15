@@ -141,12 +141,8 @@
     padding: 12px 20px;
     display:flex;
     align-items:center;
-    justify-content:space-between;
-    cursor:pointer;
     width: 100%;
   }
-  .helper-pill:hover{ background: #a5cdf5; }
-  .helper-pill .plus{ color: var(--primary-blue); font-size:20px; line-height:1; font-weight:700; }
 
   .panel{
     background: var(--sage-mist);
@@ -154,11 +150,9 @@
     border-radius: 6px;
     margin-top: 12px;
     padding: 6px;
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease;
+    max-height: 420px;
+    overflow-y: auto;
   }
-  .panel.open{ max-height: 420px; overflow-y:auto; }
   .qitem{
     font-family: var(--serif);
     font-size: 18px;
@@ -362,9 +356,8 @@
       </div>
 
       <div class="helper-dock" id="helper-dock" style="display:none;">
-        <div class="helper-pill" onclick="togglePanel()">
+        <div class="helper-pill">
           <span>Stuck? Pull a question</span>
-          <span class="plus" id="dock-icon">+</span>
         </div>
         <div class="panel" id="question-panel"></div>
       </div>
@@ -550,11 +543,6 @@
   function goTo(n){
     showScreen('screen-' + n);
     document.getElementById('helper-dock').style.display = (n === 3) ? 'block' : 'none';
-  }
-
-  function togglePanel(){
-    panel.classList.toggle('open');
-    document.getElementById('dock-icon').textContent = panel.classList.contains('open') ? '–' : '+';
   }
 
   // ---- Optional quiet timer for intros ----
