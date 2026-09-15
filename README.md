@@ -17,12 +17,13 @@ via `python3 -m http.server`).
 
 ## Facilitator picker
 
-The first screen asks whether the group needs help picking a facilitator.
-"No" skips straight to the welcome screen. "Yes" prompts for one name per
-line, then randomly picks one and shows the result before continuing. This
-runs entirely client-side (nothing saved to Supabase) — it's per-browser
-and doesn't need coordination between participants any more than the rest
-of the flow does.
+The welcome screen is the first thing everyone sees. Clicking "Begin" goes
+straight to introductions. Next to it, "Having trouble picking a
+facilitator? Click here first" links to a screen that takes one name per
+line, then randomly picks one and shows the result before continuing on to
+introductions. This runs entirely client-side (nothing saved to Supabase)
+— it's per-browser and doesn't need coordination between participants any
+more than the rest of the flow does.
 
 ## Session id
 

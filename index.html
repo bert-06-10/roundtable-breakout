@@ -211,6 +211,16 @@
   }
   .back-link:hover{ color: var(--primary-blue); }
 
+  .text-link{
+    font-family: var(--sans);
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--charcoal);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .text-link:hover{ color: var(--primary-blue); }
+
   .intro-prompts{
     font-family: var(--sans);
     font-size: 18px;
@@ -261,14 +271,15 @@
 <div id="app">
   <div class="card">
 
-    <!-- SCREEN FACILITATOR GATE: Ask if the group needs a facilitator picked -->
-    <div class="screen" id="screen-facilitator-gate">
+    <!-- SCREEN 0: Welcome -->
+    <div class="screen" id="screen-0">
       <div class="eyebrow"><span class="rule"></span>Your Roundtable Guide</div>
-      <h1 class="hero">Does your group need help selecting a facilitator?</h1>
-      <p class="lede">The facilitator keeps things moving and can pull from the backup questions if conversation stalls.</p>
+      <h1 class="hero">A short guide to open your discussion.</h1>
+      <p class="lede">Click below to get started with introductions and your opening question.</p>
+      <p class="lede">After that point, you can take the conversation in whatever direction the group prefers. We've provided a few more discussion questions at the end of this guide in case conversation stalls.</p>
       <div class="row">
-        <button class="btn" id="facilitator-gate-yes">Yes</button>
-        <button class="btn ghost" id="facilitator-gate-no">No</button>
+        <button class="btn" onclick="showScreen('screen-1')">Begin</button>
+        <span class="text-link" onclick="showScreen('screen-facilitator-names')">Having trouble picking a facilitator? Click here first</span>
       </div>
     </div>
 
@@ -279,7 +290,7 @@
 
       <div id="facilitator-form">
         <h1 class="hero">Who's in the group?</h1>
-        <p class="lede">Enter each person's name on its own line. We'll randomly pick one to facilitate.</p>
+        <p class="lede">Select one person to enter each person's name on its own line. We'll randomly pick one to facilitate.<br>Note: The person who volunteers to input names is <em>not</em> automatically the facilitator.</p>
         <textarea class="facilitator-textarea" id="facilitator-names-input" placeholder="Amir&#10;Becca&#10;Dana"></textarea>
         <div class="facilitator-error" id="facilitator-names-error"></div>
         <button class="btn" id="facilitator-pick-btn">Pick a facilitator</button>
@@ -295,16 +306,6 @@
         <h2 class="question" id="facilitator-result-name"></h2>
         <button class="btn" id="facilitator-continue-btn">Continue</button>
       </div>
-    </div>
-
-    <!-- SCREEN 0: Welcome -->
-    <div class="screen" id="screen-0">
-      <button class="back-link" onclick="goBack()" style="display:none;">&larr; Back</button>
-      <div class="eyebrow"><span class="rule"></span>Your Roundtable Guide</div>
-      <h1 class="hero">A short guide to open your discussion.</h1>
-      <p class="lede">Click below to get started with introductions and your opening question.</p>
-      <p class="lede">After that point, you can take the conversation in whatever direction the group prefers. We've provided a few more discussion questions at the end of this guide in case conversation stalls.</p>
-      <button class="btn" onclick="showScreen('screen-1')">Begin</button>
     </div>
 
     <!-- SCREEN 1: Intros -->
@@ -356,7 +357,7 @@
 
       <div class="helper-dock" id="helper-dock" style="display:none;">
         <div class="helper-pill">
-          <span>Stuck? Pull a question</span>
+          <span>Stuck? Pick a question</span>
         </div>
         <div class="panel" id="question-panel"></div>
       </div>
@@ -390,15 +391,13 @@
   const urlParams = new URLSearchParams(window.location.search);
   const SESSION_ID = urlParams.get('session') || new Date().toISOString().slice(0, 10);
 
-  document.getElementById('screen-facilitator-gate').classList.add('active');
+  document.getElementById('screen-0').classList.add('active');
 
   // ---- Facilitator picker ----
   // resetFacilitatorNames() is called by showScreen() every time this
   // screen becomes active (including via the Back link), so returning to
   // it mid-session always starts from a blank form rather than showing
   // whoever was previously picked.
-  document.getElementById('facilitator-gate-yes').onclick = () => showScreen('screen-facilitator-names');
-  document.getElementById('facilitator-gate-no').onclick = () => showScreen('screen-0');
 
   function parseFacilitatorNames(raw){
     return raw.split('\n').map(s => s.trim()).filter(Boolean);
@@ -462,7 +461,7 @@
     tick();
   };
 
-  document.getElementById('facilitator-continue-btn').onclick = () => showScreen('screen-0');
+  document.getElementById('facilitator-continue-btn').onclick = () => showScreen('screen-1');
 
   // ---- Tap logging ----
   // Tap counts are stored in Supabase, scoped to SESSION_ID. The anon key
