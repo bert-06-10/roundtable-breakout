@@ -164,14 +164,6 @@
   }
   .qitem:hover{ background: rgba(255,255,255,0.35); }
   .qitem:last-child{ border-bottom:none; }
-  .qitem .tapped-note{
-    display:block;
-    font-family: var(--sans);
-    font-weight: 400;
-    font-size: 14px;
-    color: var(--forest-green);
-    margin-top: 6px;
-  }
 
   .progress{
     position:absolute;
@@ -181,21 +173,6 @@
     font-size: 14px;
     color: var(--charcoal);
   }
-
-  .admin-panel{
-    position: fixed;
-    top: 16px;
-    right: 16px;
-    background: var(--deep-navy);
-    color: var(--off-white);
-    font-family: var(--sans);
-    font-size: 14px;
-    padding: 12px 16px;
-    border-radius: 6px;
-    max-width: 260px;
-    line-height:1.6;
-  }
-  .admin-panel b{ color: var(--sage-mist); }
 
   .back-link{
     font-family: var(--sans);
@@ -323,6 +300,7 @@
         <li>Location</li>
         <li>Role</li>
         <li>Company</li>
+        <li>Anchor and wobble</li>
       </ul>
       <p class="lede">About a minute each is plenty.</p>
 
@@ -369,9 +347,6 @@
   </div>
 </div>
 
-<div class="admin-panel" id="admin-panel" style="display:none;"></div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
   // ---- Facilitator-editable content ----
   const OPENING_QUESTION = "What elements of style or substance have you experimented with since watching the Jan Carlzon video? What was the result?";
@@ -385,14 +360,6 @@
   ];
 
   document.getElementById('opening-question-text').textContent = OPENING_QUESTION;
-
-  // ---- Session id ----
-  // Every visitor moves through the flow at their own pace — no shared
-  // link required. Tap counts still group by SESSION_ID so the admin
-  // ?taps=1 view stays meaningful; it defaults to today's date (UTC)
-  // unless overridden with ?session=name.
-  const urlParams = new URLSearchParams(window.location.search);
-  const SESSION_ID = urlParams.get('session') || new Date().toISOString().slice(0, 10);
 
   document.getElementById('screen-0').classList.add('active');
 
@@ -467,54 +434,11 @@
   document.getElementById('facilitator-continue-btn').onclick = () => showScreen('screen-1');
   document.getElementById('facilitator-skip-btn').onclick = () => showScreen('screen-1');
 
-  // ---- Tap logging ----
-  // Tap counts are stored in Supabase, scoped to SESSION_ID. The anon key
-  // below is safe to expose client-side: writes only happen through the
-  // increment_tap() RPC (see supabase/migrations), so the public key can
-  // bump a count but never overwrite arbitrary rows/columns.
-  const SUPABASE_URL = 'https://niyzscdfqfygvvlanbtm.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_7sW_TUxWD1nsTqIfdpbAOw_Dr0yLjUA';
-  const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  async function getTapCounts(){
-    if(!SESSION_ID) return {};
-    try{
-      const { data, error } = await db.from('question_taps').select('question, count').eq('session_id', SESSION_ID);
-      if(error) throw error;
-      const counts = {};
-      data.forEach(row => { counts[row.question] = row.count; });
-      return counts;
-    }catch(e){
-      console.error('Fetching tap counts failed', e);
-      return {};
-    }
-  }
-
-  async function logTap(questionText){
-    if(!SESSION_ID) return null;
-    try{
-      const { error } = await db.rpc('increment_tap', { q: questionText, s: SESSION_ID });
-      if(error) throw error;
-      return await getTapCounts();
-    }catch(e){
-      console.error('Tap logging failed', e);
-      return null;
-    }
-  }
-
   const panel = document.getElementById('question-panel');
   BACKUP_QUESTIONS.forEach(q => {
     const div = document.createElement('div');
     div.className = 'qitem';
     div.textContent = q;
-    div.onclick = async () => {
-      const note = document.createElement('span');
-      note.className = 'tapped-note';
-      note.textContent = 'Logged ✓';
-      if(!div.querySelector('.tapped-note')) div.appendChild(note);
-      const counts = await logTap(q);
-      if(counts) renderAdminPanel(counts);
-    };
     panel.appendChild(div);
   });
 
@@ -579,25 +503,6 @@
   function stopTimer(){
     clearInterval(timerInterval);
     resetTimerUI();
-  }
-
-  // ---- Optional admin view: add ?taps=1 (and ?session=name) to see logged counts ----
-  if(urlParams.get('taps') === '1'){
-    document.getElementById('admin-panel').style.display = 'block';
-    if(SESSION_ID){
-      getTapCounts().then(renderAdminPanel);
-    }else{
-      document.getElementById('admin-panel').innerHTML = '<b>Tap counts</b><br>Add ?session=&lt;name&gt; to the URL to view a session.';
-    }
-  }
-  function renderAdminPanel(counts){
-    const el = document.getElementById('admin-panel');
-    if(el.style.display === 'none') return;
-    const rows = Object.entries(counts)
-      .sort((a,b) => b[1]-a[1])
-      .map(([q,c]) => '<b>' + c + '×</b> ' + q.slice(0,40) + (q.length>40?'…':''))
-      .join('<br>');
-    el.innerHTML = '<b>Tap counts — ' + SESSION_ID + '</b><br>' + (rows || 'No taps yet');
   }
 </script>
 

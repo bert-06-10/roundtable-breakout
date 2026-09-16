@@ -11,9 +11,9 @@ Live at https://roundtable-prototype-rose.vercel.app
 
 ## Running it
 
-Static, single-file, no build step — just open `index.html` in a browser,
-or serve the folder with any static server (`.claude/launch.json` runs one
-via `python3 -m http.server`).
+Static, single-file, no build step, no external services — just open
+`index.html` in a browser, or serve the folder with any static server
+(`.claude/launch.json` runs one via `python3 -m http.server`).
 
 ## Facilitator picker
 
@@ -25,24 +25,13 @@ introductions. This runs entirely client-side (nothing saved to Supabase)
 — it's per-browser and doesn't need coordination between participants any
 more than the rest of the flow does.
 
-## Session id
-
-Everyone lands straight on the welcome screen — no name-a-session step, no
-link to copy and hand out. Backup-question taps are still tallied in
-Supabase, grouped under a `SESSION_ID` that defaults to today's date (UTC)
-so the admin view (`?taps=1`) stays meaningful without anyone having to set
-it up. Add `?session=<name>` to the URL to override that default, e.g. to
-keep one tally running across midnight.
-
 ## Notes
 
 - All facilitator-editable content (`OPENING_QUESTION`, `BACKUP_QUESTIONS`)
   lives at the top of the `<script>` block in `index.html`.
-- Tap counts (`question_taps` table) live in Supabase
-  (`supabase/migrations/`). Writes only happen through the
-  `increment_tap()` RPC — the public anon key embedded in `index.html` can
-  bump a count but never write arbitrary rows/columns.
-- `supabase/migrations/` also has an older `rooms` table + a
-  `claim_facilitator()` RPC from a since-removed per-breakout-group
-  facilitator picker. They're unused by the app now and safe to drop
-  whenever Supabase CLI access is handy.
+- Everyone lands straight on the welcome screen — no name-a-session step,
+  no link to copy and hand out.
+- `supabase/` holds migrations from a since-removed tap-tracking feature
+  (and an even older per-breakout-group facilitator picker before that).
+  Nothing in `index.html` talks to Supabase anymore; the folder and the
+  Supabase project are safe to drop whenever it's convenient.
