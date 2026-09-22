@@ -151,6 +151,16 @@
     margin-top: 12px;
     padding: 6px;
   }
+  .qcategory{
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--charcoal);
+    padding: 14px 16px 4px;
+  }
+  .qcategory:first-child{ padding-top: 8px; }
   .qitem{
     font-family: var(--serif);
     font-size: 18px;
@@ -163,7 +173,7 @@
     transition: background 0.15s ease;
   }
   .qitem:hover{ background: rgba(255,255,255,0.35); }
-  .qitem:last-child{ border-bottom:none; }
+  .qitem-last{ border-bottom:none; }
 
   .progress{
     position:absolute;
@@ -300,7 +310,7 @@
         <li>Location</li>
         <li>Role</li>
         <li>Company</li>
-        <li>Anchor and wobble</li>
+        <li>Briefly describe one leader who inspires you and why</li>
       </ul>
       <p class="lede">About a minute each is plenty.</p>
 
@@ -349,14 +359,24 @@
 
 <script>
   // ---- Facilitator-editable content ----
-  const OPENING_QUESTION = "What elements of style or substance have you experimented with since watching the Jan Carlzon video? What was the result?";
+  const OPENING_QUESTION = "What is one thing you will do differently as a leader after Tom and Mihir's classes?";
   const BACKUP_QUESTIONS = [
-    "What's one thing you plan to do to boost trust within your org/team immediately?",
-    "There are so many communication channels in a modern organization. Share how you've gotten signal through the noise.",
-    "What are your tips for delegating work when you feel overwhelmed?",
-    "Do people on the front lines of your organization have opportunities to make autonomous decisions? If yes, how is that power conferred? If no, what would it take for your organization to create this opportunity?",
-    "Does your company have a culture of inviting the \"unusual suspects\" to the table? If yes, how does that work in practice? If no, what is one thing you could do immediately to include them?",
-    "What is one challenge you're facing at work right now? How have others in the group worked through similar challenges?"
+    {
+      category: "Finance",
+      questions: [
+        "What are some ways you plan to deepen your understanding of Finance?",
+        "How could your team benefit from more Finance knowledge?",
+        "What financial metrics do you think your company is ignoring, and how could you make the case to pay more attention?",
+        "How has your understanding of your company's financial reality changed since attending Mihir's class?"
+      ]
+    },
+    {
+      category: "Leadership Journeys",
+      questions: [
+        "What leadership legacy are you currently leaving, and is there anything you'd like to change about that legacy going forward?",
+        "To whom are you planning to send your letter of gratitude? Have you written it yet? Have you sent it? Why or why not?"
+      ]
+    }
   ];
 
   document.getElementById('opening-question-text').textContent = OPENING_QUESTION;
@@ -435,11 +455,17 @@
   document.getElementById('facilitator-skip-btn').onclick = () => showScreen('screen-1');
 
   const panel = document.getElementById('question-panel');
-  BACKUP_QUESTIONS.forEach(q => {
-    const div = document.createElement('div');
-    div.className = 'qitem';
-    div.textContent = q;
-    panel.appendChild(div);
+  BACKUP_QUESTIONS.forEach(group => {
+    const header = document.createElement('div');
+    header.className = 'qcategory';
+    header.textContent = group.category;
+    panel.appendChild(header);
+    group.questions.forEach((q, i) => {
+      const div = document.createElement('div');
+      div.className = 'qitem' + (i === group.questions.length - 1 ? ' qitem-last' : '');
+      div.textContent = q;
+      panel.appendChild(div);
+    });
   });
 
   // ---- Screen navigation + back button ----
