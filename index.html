@@ -157,10 +157,6 @@
   .qgroup:first-child{ margin-top: 2px; }
   .qcategory{
     font-family: var(--sans);
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
     color: var(--deep-navy);
     background: #fff;
     border-radius: 4px;
@@ -174,6 +170,22 @@
     transition: background 0.15s ease;
   }
   .qcategory:hover{ background: #fdfdfd; }
+  .qlabel{
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .qcat-name{
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .qcat-professor{
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--charcoal);
+  }
   .qcategory .qchevron{
     transition: transform 0.15s ease;
     flex-shrink: 0;
@@ -385,6 +397,7 @@
   const BACKUP_QUESTIONS = [
     {
       category: "Finance",
+      professor: "Mihir Desai",
       questions: [
         "What are some ways you plan to deepen your understanding of Finance?",
         "How could your team benefit from more Finance knowledge?",
@@ -394,6 +407,7 @@
     },
     {
       category: "Leadership Journeys",
+      professor: "Tom DeLong",
       questions: [
         "What leadership legacy are you currently leaving, and is there anything you'd like to change about that legacy going forward?",
         "Have you ever had to make or support a decision that did not align with your leadership values? How did you navigate that moment?",
@@ -402,6 +416,7 @@
     },
     {
       category: "Fireside Chat",
+      professor: "Anne and Frances",
       questions: [
         "Who is a leader who is a great storyteller? What makes them great according to Anne and Frances's framework?",
         "How are you creating rigor for your teams when mandates are ambiguous?",
@@ -493,7 +508,17 @@
     const header = document.createElement('div');
     header.className = 'qcategory';
     const label = document.createElement('span');
-    label.textContent = group.category;
+    label.className = 'qlabel';
+    const catName = document.createElement('span');
+    catName.className = 'qcat-name';
+    catName.textContent = group.category;
+    label.appendChild(catName);
+    if(group.professor){
+      const professorEl = document.createElement('span');
+      professorEl.className = 'qcat-professor';
+      professorEl.textContent = group.professor;
+      label.appendChild(professorEl);
+    }
     const chevron = document.createElement('span');
     chevron.className = 'qchevron';
     chevron.textContent = '›'; // ›
