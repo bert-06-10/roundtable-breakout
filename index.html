@@ -151,6 +151,10 @@
     margin-top: 12px;
     padding: 6px;
   }
+  .qgroup{
+    margin: 8px 6px;
+  }
+  .qgroup:first-child{ margin-top: 2px; }
   .qcategory{
     font-family: var(--sans);
     font-size: 13px;
@@ -161,9 +165,24 @@
     background: #fff;
     border-radius: 4px;
     padding: 8px 12px;
-    margin: 8px 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    user-select: none;
+    transition: background 0.15s ease;
   }
-  .qcategory:first-child{ margin-top: 2px; }
+  .qcategory:hover{ background: #fdfdfd; }
+  .qcategory .qchevron{
+    transition: transform 0.15s ease;
+    flex-shrink: 0;
+  }
+  .qgroup.open .qcategory .qchevron{ transform: rotate(90deg); }
+  .qitems{
+    display: none;
+  }
+  .qgroup.open .qitems{ display: block; }
   .qitem{
     font-family: var(--serif);
     font-size: 18px;
@@ -351,7 +370,7 @@
 
       <div class="helper-dock" id="helper-dock" style="display:none;">
         <div class="helper-pill">
-          <span>Stuck? Pick a question</span>
+          <span>Stuck? Expand a topic area and pick a question.</span>
         </div>
         <div class="panel" id="question-panel"></div>
       </div>
@@ -468,16 +487,32 @@
 
   const panel = document.getElementById('question-panel');
   BACKUP_QUESTIONS.forEach(group => {
+    const groupEl = document.createElement('div');
+    groupEl.className = 'qgroup';
+
     const header = document.createElement('div');
     header.className = 'qcategory';
-    header.textContent = group.category;
-    panel.appendChild(header);
+    const label = document.createElement('span');
+    label.textContent = group.category;
+    const chevron = document.createElement('span');
+    chevron.className = 'qchevron';
+    chevron.textContent = '›'; // ›
+    header.appendChild(label);
+    header.appendChild(chevron);
+    header.onclick = () => groupEl.classList.toggle('open');
+    groupEl.appendChild(header);
+
+    const itemsEl = document.createElement('div');
+    itemsEl.className = 'qitems';
     group.questions.forEach((q, i) => {
       const div = document.createElement('div');
       div.className = 'qitem' + (i === group.questions.length - 1 ? ' qitem-last' : '');
       div.textContent = q;
-      panel.appendChild(div);
+      itemsEl.appendChild(div);
     });
+    groupEl.appendChild(itemsEl);
+
+    panel.appendChild(groupEl);
   });
 
   // ---- Screen navigation + back button ----
