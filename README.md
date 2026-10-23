@@ -21,7 +21,7 @@ The welcome screen is the first thing everyone sees. Clicking "Begin" goes
 straight to introductions. Next to it, "Having trouble picking a
 facilitator? Click here first" links to a screen that takes one name per
 line, then randomly picks one and shows the result before continuing on to
-introductions. This runs entirely client-side (nothing saved to Supabase)
+introductions. This runs entirely client-side
 — it's per-browser and doesn't need coordination between participants any
 more than the rest of the flow does.
 
@@ -31,7 +31,3 @@ more than the rest of the flow does.
   lives at the top of the `<script>` block in `index.html`.
 - Everyone lands straight on the welcome screen — no name-a-session step,
   no link to copy and hand out.
-- `supabase/` holds migrations from a since-removed tap-tracking feature
-  (and an even older per-breakout-group facilitator picker before that).
-  Nothing in `index.html` talks to Supabase anymore; the folder and the
-  Supabase project are safe to drop whenever it's convenient.
